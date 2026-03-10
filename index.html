@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Type play</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Coding Systems - Type Play</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/p5.min.js"></script>
+    <style>
+        :root {
+            --ui-bg: #ffffff;
+            --ui-border: #eeeeee;
+            --ui-accent: #00ff00;
+            --ui-text: #000000;
+            --ui-text-dim: #666666;
+            --ui-btn-bg: #000000;
+            --slider-track: #000000;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: #e5e5e5;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: var(--ui-text);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #ui { display: flex; height: 100vh; }
+
+        #ui-left {
+            width: 320px;
+            background: var(--ui-bg);
+            border-right: 1px solid var(--ui-border);
+            height: 100vh;
+            overflow-y: auto;
+            pointer-events: all;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+
+        .noselect { user-select: none; }
+
+        .ui-component {
+            padding: 16px 24px; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        .b-bot { border-bottom: 1px solid var(--ui-border); }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--ui-text-dim);
+            margin-bottom: 2px;
+        }
+
+        label span { color: #000; font-family: monospace; font-weight: bold; }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 1px;
+            background: var(--slider-track);
+            outline: none;
+            margin: 8px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px; height: 12px;
+            background: var(--ui-accent);
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .smallBtn {
+            background: #000;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .smallBtn:hover { background: #333; }
+
+        #fontLabel {
+            height: 32px;
+            width: 75px;
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 0 8px;
+            font-size: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        #fontLabel svg { stroke: #fff; width: 12px; height: 12px; }
+
+        .colorSelector { display: flex; align-items: center; gap: 12px; }
+        .color-item { display: flex; align-items: center; gap: 6px; }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px; height: 24px;
+            border: 1px solid #000;
+            padding: 0; background: none; cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; }
+
+        .export-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .ratio-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
+        .ratio-btn {
+            background: #fff; border: 1px solid #ddd;
+            font-size: 9px; padding: 6px; cursor: pointer; font-weight: bold;
+            transition: all 0.2s;
+        }
+        .ratio-btn.active { border-color: #000; background: #000; color: #fff; }
+
+        #charInput {
+            border: none;
+            background: #eeeeee;
+            padding: 0 10px;
+            font-size: 15px;
+            font-weight: 500; 
+            color: #000;
+            font-family: 'Courier New', Courier, monospace;
+            outline: none;
+            height: 32px; 
+            box-sizing: border-box;
+            flex: 1;
+            min-width: 0;
+            letter-spacing: 0.5px;
+        }
+
+        .ctrl-disabled {
+            opacity: 0.3;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+
+        #artboard {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #canvasWrapper { line-height: 0; }
+        
+        .footer-credit { 
+            font-size: 11px; 
+            color: #000; 
+            padding: 24px; 
+            margin-top: auto;
+            letter-spacing: 1px; 
+            font-weight: 900; 
+            text-transform: uppercase;
+        }
+
+        .upload-area-wrapper {
+            display: block;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        #uploadPlaceholder {
+            width: 100%;
+            height: 50px;
+            border: 1px solid #000; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 18px;
+            box-sizing: border-box;
+            transition: background 0.2s;
+        }
+        #uploadPlaceholder:hover { background: #f0f0f0; }
+
+        #mediaPreviewContainer { 
+            width: 100%; 
+            height: 100px; 
+            background: #fff; 
+            border: 1px solid #ddd; 
+            overflow: hidden; 
+            box-sizing: border-box;
+        }
+        #inputImagePreview, #inputVideoPreview { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+            background: #fafafa;
+        }
+
+        .reset-btn {
+            background: none; border: none; color: #999;
+            padding: 0; font-size: 9px; cursor: pointer;
+            font-weight: bold; transition: all 0.2s;
+        }
+        .reset-btn:hover { color: #000; }
+
+        .char-ctrl-row { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+            width: 100%; 
+            box-sizing: border-box; 
+            transition: opacity 0.3s;
+        }
+        
+        #fontActive { display: none; align-items: center; gap: 5px; border: 1px solid #000; padding: 0 8px; font-size: 9px; background: #fff; height: 32px; box-sizing: border-box; }
+        #fontNameText { max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold;}
+        .clear-font { color: #ff0000; cursor: pointer; font-weight: 900; font-size: 14px; }
+    </style>
+</head>
+
+<body>
+    <main id="ui">
+        <aside id="ui-left" class="noselect">
+
+            <div class="ui-component b-bot">
+                <label>Canvas Ratio 画布比例</label>
+                <div class="ratio-grid">
+                    <button class="ratio-btn active" id="r11" onclick="changeRatio('1:1')">1:1</button>
+                    <button class="ratio-btn" id="r34" onclick="changeRatio('3:4')">3:4</button>
+                    <button class="ratio-btn" id="r43" onclick="changeRatio('4:3')">4:3</button>
+                </div>
+            </div>
+
+            <div class="ui-component b-bot">
+                <label>Upload File 上传文件</label>
+                <label for="mediaUpload" class="upload-area-wrapper">
+                    <div id="uploadPlaceholder">+</div>
+                    <div id="mediaPreviewContainer" style="display:none;">
+                        <img id="inputImagePreview" style="display:none;">
+                        <video id="inputVideoPreview" style="display:none;" muted loop playsinline></video>
+                    </div>
+                </label>
+                <input type="file" id="mediaUpload" onchange="handleMedia(event)" accept="image/*, image/svg+xml, video/*" style="display: none;" />
+            </div>
+
+            <div class="ui-component b-bot">
+                <label>Custom Colors 颜色设置</label>
+                <div class="colorSelector">
+                    <div class="color-item"><input type="color" id="cDark" value="#000000" oninput="redraw()"><span style="font-size:9px;">DARK</span></div>
+                    <div class="color-item"><input type="color" id="cMid" value="#00ff00" oninput="redraw()"><span style="font-size:9px;">中间 MID</span></div>
+                    <div class="color-item" style="margin-left:8px; padding-left:12px; border-left:1px solid #eee;">
+                        <input type="color" id="cCanvas" value="#ffffff" oninput="redraw()"><span style="font-size:9px;">背景 BG</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui-component b-bot">
+                <label>Shape Mode 形状模式</label>
+                <select id="shapeMode" onchange="updateUIState(); redraw();" style="width:100%; padding:8px; font-size:11px; border:1px solid #000; margin-bottom:8px; outline:none; box-sizing: border-box;">
+                    <option value="square">SQUARE 方块</option>
+                    <option value="circle">CIRCLE 圆形</option>
+                    <option value="char">CHARACTER 字符</option>
+                </select>
+                <div class="char-ctrl-row ctrl-disabled" id="charCtrlRow">
+                    <input type="text" id="charInput" value="@#*+." placeholder="输入字符..." oninput="redraw()">
+                    <label for="fontUpload" id="fontLabel">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        FONT
+                    </label>
+                    <div id="fontActive"><span id="fontNameText"></span><span class="clear-font" onclick="clearFont()">✕</span></div>
+                    <input type="file" id="fontUpload" onchange="handleFont(event)" accept=".ttf, .otf" style="display: none;" />
+                </div>
+            </div>
+
+            <div class="ui-component" style="padding-top:14px; padding-bottom:7px;"><label>Resolution 分辨率 <span id="v1">40</span></label><input type="range" id="res" min="20" max="100" value="40"></div>
+            <div class="ui-component" style="padding-top:7px; padding-bottom:7px;"><label>Dither 抖动 <span id="v2">4x4</span></label><input type="range" id="subDiv" min="2" max="6" step="1" value="4"></div>
+            <div class="ui-component" style="padding-top:7px; padding-bottom:7px;"><label>Contrast 对比度 <span id="v3">1.5</span></label><input type="range" id="contrast" min="0.5" max="3" step="0.1" value="1.5"></div>
+            <div class="ui-component b-bot" style="padding-top:7px; padding-bottom:18px;"><label>Brightness 亮度 <span id="v4">128</span></label><input type="range" id="bright" min="0" max="255" value="128"></div>
+
+            <div class="ui-component">
+                <label>Export 导出 <button class="reset-btn" onclick="resetTool()">重置 RESET</button></label>
+                <div class="export-grid">
+                    <button class="smallBtn" onclick="saveArtJPG()">JPG</button>
+                    <button class="smallBtn" onclick="saveArt()">PNG</button>
+                    <button class="smallBtn" onclick="exportSVG()">SVG</button>
+                </div>
+            </div>
+
+            <div class="footer-credit">2026 ©design by Type play</div>
+        </aside>
+
+        <section id="artboard">
+            <div id="canvasWrapper"></div>
+        </section>
+    </main>
+
+    <script>
+        let sourceMedia = null, isVideo = false, cvs, customFont, baseDim = 800;
+
+        function setup() {
+            cvs = createCanvas(baseDim, baseDim);
+            cvs.parent('canvasWrapper');
+            noLoop();
+            document.querySelectorAll('input[type="range"]').forEach(i => {
+                i.oninput = () => {
+                    const vMap = {res:'v1', subDiv:'v2', contrast:'v3', bright:'v4'};
+                    document.getElementById(vMap[i.id]).innerText = (i.id==='subDiv')? i.value+'x'+i.value : i.value;
+                    redraw();
+                };
+            });
+            updateUIState();
+        }
+
+        function updateUIState() {
+            const mode = document.getElementById('shapeMode').value;
+            const charRow = document.getElementById('charCtrlRow');
+            if (mode === 'char') charRow.classList.remove('ctrl-disabled');
+            else charRow.classList.add('ctrl-disabled');
+        }
+
+        function changeRatio(ratio) {
+            document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+            if (ratio === '1:1') { resizeCanvas(baseDim, baseDim); document.getElementById('r11').classList.add('active'); }
+            else if (ratio === '3:4') { resizeCanvas(600, 800); document.getElementById('r34').classList.add('active'); }
+            else if (ratio === '4:3') { resizeCanvas(800, 600); document.getElementById('r43').classList.add('active'); }
+            redraw();
+        }
+
+        function handleMedia(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const url = URL.createObjectURL(file); isVideo = file.type.startsWith('video/');
+            const imgEl = document.getElementById('inputImagePreview'), vidEl = document.getElementById('inputVideoPreview');
+            const placeholder = document.getElementById('uploadPlaceholder'), container = document.getElementById('mediaPreviewContainer');
+            placeholder.style.display = 'none'; container.style.display = 'block';
+            if (isVideo) {
+                imgEl.style.display = 'none'; vidEl.style.display = 'block'; vidEl.src = url;
+                sourceMedia = createVideo(url, () => { sourceMedia.hide(); sourceMedia.loop(); sourceMedia.volume(0); loop(); });
+            } else {
+                vidEl.style.display = 'none'; imgEl.style.display = 'block'; imgEl.src = url;
+                sourceMedia = loadImage(url, () => { noLoop(); redraw(); });
+            }
+        }
+
+        function handleFont(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader(); reader.onload = (ev) => {
+                loadFont(ev.target.result, f => {
+                    customFont = f; document.getElementById('fontNameText').innerText = file.name;
+                    document.getElementById('fontLabel').style.display = 'none'; document.getElementById('fontActive').style.display = 'flex';
+                    redraw();
+                });
+            }; reader.readAsDataURL(file);
+        }
+
+        function clearFont() {
+            customFont = null; document.getElementById('fontUpload').value = "";
+            document.getElementById('fontLabel').style.display = 'inline-flex'; document.getElementById('fontActive').style.display = 'none';
+            redraw();
+        }
+
+        function getPixelState(gray) {
+            if (gray < 40) return 'BLACK'; if (gray < 100) return 'DITHER_BG';
+            if (gray < 160) return 'GREEN'; if (gray < 220) return 'DITHER_GW';
+            return 'WHITE';
+        }
+
+        function drawShape(ctx, x, y, size, col, grayValue) {
+            const mode = document.getElementById('shapeMode').value; ctx.fill(col); ctx.noStroke();
+            if (mode === 'square') ctx.rect(x, y, size + 0.5, size + 0.5);
+            else if (mode === 'circle') { ctx.ellipseMode(CORNER); ctx.ellipse(x, y, size, size); }
+            else if (mode === 'char') {
+                const chars = document.getElementById('charInput').value || "@";
+                let charIdx = floor(map(grayValue, 0, 255, chars.length - 1, 0));
+                charIdx = constrain(charIdx, 0, chars.length - 1);
+                if (customFont) ctx.textFont(customFont); else ctx.textFont('monospace');
+                ctx.textSize(size * 1.2); ctx.textAlign(CENTER, CENTER); ctx.text(chars[charIdx], x + size/2, y + size/2);
+            }
+        }
+
+        function draw() {
+            if (!sourceMedia) { background(255); return; }
+            renderToContext(this);
+        }
+
+        function renderToContext(ctx, isExport = false, isTransparent = false) {
+            const colorDark = document.getElementById('cDark').value;
+            const colorMid = document.getElementById('cMid').value;
+            const colorBG = document.getElementById('cCanvas').value;
+            if (!isTransparent) ctx.background(colorBG); else ctx.clear();
+
+            const resSlider = parseInt(document.getElementById('res').value);
+            const subDiv = parseInt(document.getElementById('subDiv').value);
+            const contrast = parseFloat(document.getElementById('contrast').value);
+            const bright = parseInt(document.getElementById('bright').value);
+            
+            let imgAspect = sourceMedia.width / sourceMedia.height;
+            let canvasAspect = ctx.width / ctx.height;
+            let dw, dh, dx, dy;
+            if (imgAspect > canvasAspect) { dw = ctx.width; dh = ctx.width / imgAspect; } 
+            else { dh = ctx.height; dw = ctx.height * imgAspect; }
+            dx = (ctx.width - dw) / 2; dy = (ctx.height - dh) / 2;
+
+            const tileSize = dw / resSlider;
+            const resX = resSlider;
+            const resY = Math.round(dh / tileSize);
+            
+            let pg = createGraphics(resX, resY);
+            pg.image(sourceMedia, 0, 0, resX, resY); pg.loadPixels();
+
+            for (let x = 0; x < resX; x++) {
+                for (let y = 0; y < resY; y++) {
+                    let idx = (x + y * resX) * 4; if (pg.pixels[idx+3] < 128) continue;
+                    let gray = (pg.pixels[idx] * 0.299 + pg.pixels[idx+1] * 0.587 + pg.pixels[idx+2] * 0.114);
+                    gray = (gray - bright) * contrast + 128;
+                    let state = getPixelState(gray);
+                    let px = dx + x * tileSize, py = dy + y * tileSize;
+                    
+                    if (state === 'BLACK') drawShape(ctx, px, py, tileSize, colorDark, gray);
+                    else if (state === 'DITHER_BG') drawSubGrid(ctx, px, py, tileSize, subDiv, colorDark, colorMid, x, y, gray);
+                    else if (state === 'GREEN') drawShape(ctx, px, py, tileSize, colorMid, gray);
+                    else if (state === 'DITHER_GW') drawSubGrid(ctx, px, py, tileSize, subDiv, colorMid, colorBG, x, y, gray, isTransparent);
+                    else if (!isTransparent) drawShape(ctx, px, py, tileSize, colorBG, gray);
+                }
+            }
+            pg.remove();
+        }
+
+        function drawSubGrid(ctx, x, y, size, div, col1, col2, gx, gy, origGray, isTransparent = false) {
+            let subSize = size / div;
+            const colorBG = document.getElementById('cCanvas').value;
+            for (let sx = 0; sx < div; sx++) {
+                for (let sy = 0; sy < div; sy++) {
+                    let checker = ((gx * div + sx) + (gy * div + sy)) % 2 === 0;
+                    let activeCol = checker ? col1 : col2;
+                    if (isTransparent && activeCol.toLowerCase() === colorBG.toLowerCase()) continue;
+                    drawShape(ctx, x + sx * subSize, y + sy * subSize, subSize, activeCol, origGray);
+                }
+            }
+        }
+
+        function exportHighRes(format) {
+            if (!sourceMedia) return alert("Please upload media first");
+            const longSide = 3508;
+            let exportW, exportH;
+            const currentRatio = width / height;
+            if (currentRatio === 1) { exportW = longSide; exportH = longSide; }
+            else if (currentRatio < 1) { exportW = longSide * currentRatio; exportH = longSide; }
+            else { exportW = longSide; exportH = longSide / currentRatio; }
+            let highResCanvas = createGraphics(exportW, exportH);
+            const isTransparent = (format === 'png');
+            renderToContext(highResCanvas, true, isTransparent);
+            saveCanvas(highResCanvas, 'TypePlay_Export', format);
+            highResCanvas.remove();
+        }
+
+        function saveArt() { exportHighRes('png'); }
+        function saveArtJPG() { exportHighRes('jpg'); }
+
+        function resetTool() {
+            if(sourceMedia && isVideo) sourceMedia.stop(); sourceMedia = null; isVideo = false; clearFont();
+            document.getElementById('mediaUpload').value = ""; document.getElementById('mediaPreviewContainer').style.display = 'none';
+            document.getElementById('uploadPlaceholder').style.display = 'flex'; changeRatio('1:1');
+            document.getElementById('res').value = 40; document.getElementById('subDiv').value = 4;
+            document.getElementById('contrast').value = 1.5; document.getElementById('bright').value = 128;
+            document.getElementById('shapeMode').value = 'square'; document.getElementById('charInput').value = "@#*+.";
+            document.getElementById('v1').innerText = "40"; document.getElementById('v2').innerText = "4x4";
+            document.getElementById('v3').innerText = "1.5"; document.getElementById('v4').innerText = "128";
+            document.getElementById('cDark').value = "#000000"; document.getElementById('cMid').value = "#00ff00"; document.getElementById('cCanvas').value = "#ffffff";
+            updateUIState(); noLoop(); clear(); background(255); redraw();
+        }
+
+        // --- 核心优化后的 SVG 导出 ---
+        function exportSVG() {
+            if (!sourceMedia) return;
+            const colorDark = document.getElementById('cDark').value, colorMid = document.getElementById('cMid').value, colorBG = document.getElementById('cCanvas').value;
+            const resSlider = parseInt(document.getElementById('res').value), subDiv = parseInt(document.getElementById('subDiv').value);
+            const contrast = parseFloat(document.getElementById('contrast').value), bright = parseInt(document.getElementById('bright').value);
+            const mode = document.getElementById('shapeMode').value;
+            
+            let imgAspect = sourceMedia.width / sourceMedia.height, canvasAspect = width / height;
+            let dw, dh, dx, dy;
+            if (imgAspect > canvasAspect) { dw = width; dh = width / imgAspect; } 
+            else { dh = height; dw = height * imgAspect; }
+            dx = (width - dw) / 2; dy = (height - dh) / 2;
+
+            const tileSize = dw / resSlider;
+            const resX = resSlider, resY = Math.round(dh / tileSize);
+            let pg = createGraphics(resX, resY); pg.image(sourceMedia, 0, 0, resX, resY); pg.loadPixels();
+
+            // 路径合并容器：AI 处理复合路径速度极快
+            let paths = { [colorDark.toLowerCase()]: "", [colorMid.toLowerCase()]: "" };
+            let otherShapes = ""; // 用于 circle 和 char 模式
+
+            const bgHex = colorBG.toLowerCase();
+
+            for (let x = 0; x < resX; x++) {
+                for (let y = 0; y < resY; y++) {
+                    let idx = (x + y * resX) * 4; if (pg.pixels[idx+3] < 128) continue;
+                    let gray = (pg.pixels[idx] * 0.299 + pg.pixels[idx+1] * 0.587 + pg.pixels[idx+2] * 0.114);
+                    gray = (gray - bright) * contrast + 128; let state = getPixelState(gray);
+                    let px = dx + x * tileSize, py = dy + y * tileSize;
+
+                    const addShape = (sx, sy, sSize, col, g) => {
+                        const c = col.toLowerCase();
+                        if (c === bgHex) return;
+                        if (mode === 'square') {
+                            if (!paths[c]) paths[c] = "";
+                            // 使用路径数据 M x y h w v h z (AI 解析最快的数据格式)
+                            paths[c] += `M${sx.toFixed(2)},${sy.toFixed(2)}h${(sSize+0.1).toFixed(2)}v${(sSize+0.1).toFixed(2)}h-${(sSize+0.1).toFixed(2)}z `;
+                        } else if (mode === 'circle') {
+                            otherShapes += `<circle cx="${(sx+sSize/2).toFixed(2)}" cy="${(sy+sSize/2).toFixed(2)}" r="${(sSize/2).toFixed(2)}" fill="${col}"/>`;
+                        } else {
+                            const chars = document.getElementById('charInput').value || "@";
+                            let charIdx = constrain(floor(map(g, 0, 255, chars.length - 1, 0)), 0, chars.length-1);
+                            otherShapes += `<text x="${(sx+sSize/2).toFixed(2)}" y="${(sy+sSize/2).toFixed(2)}" fill="${col}" font-size="${(sSize*1.2).toFixed(2)}" font-family="monospace" text-anchor="middle" dominant-baseline="central">${chars[charIdx]}</text>`;
+                        }
+                    };
+
+                    if (state === 'BLACK') addShape(px, py, tileSize, colorDark, gray);
+                    else if (state === 'GREEN') addShape(px, py, tileSize, colorMid, gray);
+                    else if (state === 'DITHER_BG' || state === 'DITHER_GW') {
+                        let c1 = state === 'DITHER_BG' ? colorDark : colorMid, c2 = state === 'DITHER_BG' ? colorMid : colorBG;
+                        let sSize = tileSize / subDiv;
+                        for (let sx = 0; sx < subDiv; sx++) for (let sy = 0; sy < subDiv; sy++) {
+                            let col = ((x * subDiv + sx) + (y * subDiv + sy)) % 2 === 0 ? c1 : c2;
+                            addShape(px + sx * sSize, py + sy * sSize, sSize, col, gray);
+                        }
+                    }
+                }
+            }
+
+            let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" shape-rendering="crispEdges">`;
+            // 合并后的路径输出
+            for (let col in paths) {
+                if (paths[col]) svg += `<path d="${paths[col]}" fill="${col}"/>`;
+            }
+            svg += otherShapes + `</svg>`;
+            
+            let blob = new Blob([svg], {type: 'image/svg+xml'}); 
+            let link = document.createElement('a'); link.href = URL.createObjectURL(blob); 
+            link.download = 'TypePlay_AI_Optimized.svg'; link.click();
+            pg.remove();
+        }
+    </script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
